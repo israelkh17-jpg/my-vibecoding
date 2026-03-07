@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동북고 수업 메모장</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 엑셀 다운로드 및 업로드를 위한 SheetJS 라이브러리 -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5eHVCK10DSzzN_zgP7Pfi143k_7kJdyQ",
+            authDomain: "vibecoding-exe.firebaseapp.com",
+            projectId: "vibecoding-exe",
+            storageBucket: "vibecoding-exe.firebasestorage.app",
+            messagingSenderId: "318705619437",
+            appId: "1:318705619437:web:7fa6afce34fe50ccce17e4",
+            measurementId: "G-X4S0TNNFQK",
+            databaseURL: "https://vibecoding-exe-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.db = db;
+        window.ref = ref;
+        window.set = set;
+        window.get = get;
+        window.remove = remove;
+    </script>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- 네비게이션 바 -->
+    <nav class="bg-white shadow-sm sticky top-0 z-10 border-b border-slate-200">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-blue-600 flex items-center gap-2">
+                강현식의 수업 메모장
+            </h1>
+            <div class="flex gap-2 items-center">
+                <button onclick="switchTab('input')" id="tab-input" class="px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition-all">
+                    기록하기
+                </button>
+                <button onclick="switchTab('list')" id="tab-list" class="px-4 py-2 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition-all">
+                    조회하기
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 mt-8">
+        
+        <!-- 입력 섹션 -->
+        <section id="input-section" class="fade-in space-y-6">
+            
+            <!-- 기본 정보 카드 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">기본 수업 정보</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">날짜</label>
+                        <input type="date" id="date" onchange="handleDateChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">과목</label>
+                        <select id="subject" onchange="handleSubjectChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                            <option value="">과목 선택</option>
+                            <option value="물리학2">물리학2</option>
+                            <option value="통합과학">통합과학</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">반</label>
+                        <select id="class-group" onchange="handleClassChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                            <option value="">과목을 먼저 선택하세요</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">교시</label>
+                        <select id="period" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-slate-50">
+                            <option value="">교시 선택</option>
+                            <option value="1">1교시</option>
+                            <option value="2">2교시</option>
+                            <option value="3">3교시</option>
+                            <option value="4">4교시</option>
+                            <option value="5">5교시</option>
+                            <option value="6">6교시</option>
+                            <option value="7">7교시</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 수업 내용 카드 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">수업 상세 내용</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">수업 진도</label>
+                        <input type="text" id="lesson-progress" placeholder="오늘 나간 진도를 입력하세요" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">특기사항</label>
+                        <textarea id="general-note" rows="3" placeholder="수업 분위기나 공지사항 등 공통 내용을 입력하세요" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 학생별 특기사항 카드 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">학생 개별 특기사항</h2>
+                        <button id="btn-search-student" onclick="openStudentSearch()" disabled class="disabled:opacity-50 disabled:cursor-not-allowed text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-md hover:bg-blue-100 transition-colors">
+                            학생 선택 버튼
+                        </button>
+                    </div>
+                    <button onclick="addStudentRow()" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                        <span class="text-lg">+</span> 직접 추가
+                    </button>
+                </div>
+                
+                <div id="student-list" class="space-y-3">
+                    <!-- 학생 입력 줄이 여기에 추가됨 -->
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="saveMemo()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+                    <span>💾</span> 저장하기
+                </button>
+            </div>
+
+        </section>
+
+        <!-- 조회 섹션 -->
+        <section id="list-section" class="hidden fade-in space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-lg font-bold text-slate-700">저장된 기록 목록</h2>
+                <div class="flex gap-2">
+                    <button onclick="downloadExcel()" id="btn-download" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm">
+                        <span>📊</span> 학생 기록 다운로드
+                    </button>
+                    <button onclick="downloadGeneralNotesExcel()" id="btn-download-general" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm">
+                        <span>📋</span> 특기사항 다운로드
+                    </button>
+                </div>
+            </div>
+            
+            <div id="memo-container" class="space-y-4">
+                <!-- 저장된 메모 카드가 여기에 표시됨 -->
+            </div>
+            <div id="empty-state" class="hidden py-20 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400">저장된 수업 기록이 없습니다.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 학생 선택 모달 -->
+    <div id="student-search-modal" class="modal">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-[500px] max-w-[95%] max-h-[80vh] flex flex-col fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold" id="search-modal-title">학생 선택</h3>
+                <button onclick="closeModal('student-search-modal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div class="mb-4">
+                <input type="text" id="student-filter" oninput="filterStudentList()" placeholder="이름 또는 학번 검색..." class="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+            <div id="search-results" class="flex-1 overflow-y-auto custom-scrollbar space-y-1">
+                <!-- 검색 결과 버튼들 -->
+            </div>
+            <div class="mt-4 text-xs text-slate-400 text-center">
+                이미 추가된 학생은 목록에 표시되지 않습니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full text-sm font-medium opacity-0 transition-opacity pointer-events-none z-50">
+        저장되었습니다.
+    </div>
+
+    <!-- 학생 데이터 로드 -->
+    <script src="./students.js"></script>
+    
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
