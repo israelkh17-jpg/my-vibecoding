@@ -227,9 +227,9 @@ function addStudentRow() {
         div.className = 'flex flex-col gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100 fade-in';
     div.innerHTML = `
             <div class="flex gap-2 items-center">
-                <input type="text" placeholder="학번" class="std-id w-20 px-2 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                <input type="text" placeholder="성명" class="std-name flex-1 px-2 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                <button onclick="removeStudentRow('${rowId}')" class="text-slate-400 hover:text-red-500 px-2 py-1">✕</button>
+                <input type="text" placeholder="학번" class="std-id w-20 shrink-0 px-2 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                <input type="text" placeholder="성명" class="std-name flex-1 min-w-0 w-0 px-2 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                <button onclick="removeStudentRow('${rowId}')" class="shrink-0 text-slate-400 hover:text-red-500 px-2 py-1">✕</button>
             </div>
             <textarea placeholder="특기사항 입력" class="std-note w-full px-2 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm h-20 resize-none"></textarea>
     `;
