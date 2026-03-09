@@ -55,6 +55,7 @@ const schedule = {
 // students.js의 데이터를 사용
 let allStudents = window.students || [];
 let studentDB = JSON.parse(localStorage.getItem('teacher_students') || JSON.stringify(allStudents));
+let cachedClassNotes = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('date').valueAsDate = new Date();
@@ -448,6 +449,91 @@ async function downloadGeneralNotesExcel() {
     }
 }
 
+async function openClassNotesView() {
+    try {
+        const memosRef = ref(db, 'memos');
+        const snapshot = await get(memosRef);
+        let savedData = [];
+
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            savedData = Object.values(data);
+        }
+
+        cachedClassNotes = savedData;
+        renderClassFilterOptions(savedData);
+        document.getElementById('class-notes-filter').value = '';
+        renderClassNotesByClass(savedData, '');
+        document.getElementById('class-notes-modal').classList.add('active');
+    } catch (error) {
+        console.error('Class notes view error:', error);
+        alert('반별 특기사항을 불러오는 중 오류가 발생했습니다.');
+    }
+}
+
+function renderClassFilterOptions(memos) {
+    const filterSelect = document.getElementById('class-notes-filter');
+    const classKeys = Array.from(new Set(
+        memos
+            .filter(memo => memo.generalNote && String(memo.generalNote).trim())
+            .map(memo => memo.classGroup || '미분류')
+    )).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    filterSelect.innerHTML = '<option value="">전체 반</option>' + classKeys.map(classKey =>
+        `<option value="${classKey}">${classKey}</option>`
+    ).join('');
+}
+
+function filterClassNotesView() {
+    const selectedClass = document.getElementById('class-notes-filter').value;
+    renderClassNotesByClass(cachedClassNotes, selectedClass);
+}
+
+function renderClassNotesByClass(memos, selectedClass) {
+    const container = document.getElementById('class-notes-content');
+    const notesOnly = memos
+        .filter(memo => memo.generalNote && String(memo.generalNote).trim())
+        .filter(memo => !selectedClass || (memo.classGroup || '미분류') === selectedClass)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+    if (notesOnly.length === 0) {
+        container.innerHTML = `
+            <div class="py-16 text-center border border-slate-200 rounded-xl bg-slate-50">
+                <p class="text-slate-500">조건에 맞는 반별 특기사항이 없습니다.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const grouped = notesOnly.reduce((acc, memo) => {
+        const classKey = memo.classGroup || '미분류';
+        if (!acc[classKey]) {
+            acc[classKey] = [];
+        }
+        acc[classKey].push(memo);
+        return acc;
+    }, {});
+
+    const sortedClassKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    container.innerHTML = sortedClassKeys.map(classKey => `
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div class="bg-indigo-50 px-4 py-3 border-b border-slate-200">
+                <h4 class="font-bold text-indigo-700">${classKey}</h4>
+            </div>
+            <div class="p-4 space-y-3">
+                ${grouped[classKey].map(memo => `
+                    <div class="rounded-lg border border-slate-200 p-3 bg-slate-50">
+                        <p class="text-xs text-slate-500 mb-1">${memo.date || '-'} / ${memo.subject || '-'} / ${memo.period || '-'}교시</p>
+                        <p class="text-sm text-slate-700 mb-1"><span class="font-semibold text-slate-600">수업 진도:</span> ${memo.progress || '-'}</p>
+                        <p class="text-sm text-slate-700 whitespace-pre-wrap">${memo.generalNote}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
 function showToast(msg) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
@@ -472,4 +558,6 @@ window.renderMemoList = renderMemoList;
 window.deleteMemo = deleteMemo;
 window.downloadExcel = downloadExcel;
 window.downloadGeneralNotesExcel = downloadGeneralNotesExcel;
+window.openClassNotesView = openClassNotesView;
+window.filterClassNotesView = filterClassNotesView;
 window.showToast = showToast;
