@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강현식 선생님 시수 계산기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --bg: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(at 0% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%),
+                              radial-gradient(at 50% 0%, hsla(225,39%,20%,0.05) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        header p {
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .input-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-left: 4px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 2px solid #e2e8f0;
+            background: #fff;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .btn-calc {
+            grid-column: span 2;
+            background: var(--primary);
+            color: white;
+            padding: 18px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-calc:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(37, 99, 235, 0.3);
+            background: #1d4ed8;
+        }
+
+        .btn-calc:active {
+            transform: scale(0.98);
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .result-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .total-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 8px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .lesson-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .lesson-table th {
+            padding: 10px 20px;
+            text-align: left;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+        }
+
+        .lesson-table tr {
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: transform 0.2s ease;
+        }
+
+        .lesson-table tr:hover {
+            transform: scale(1.01);
+        }
+
+        .lesson-table td {
+            padding: 18px 20px;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .lesson-table td:first-child {
+            border-left: 1px solid #f1f5f9;
+            border-radius: 16px 0 0 16px;
+            font-weight: 700;
+        }
+
+        .lesson-table td:last-child {
+            border-right: 1px solid #f1f5f9;
+            border-radius: 0 16px 16px 0;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .status-ok { background: #ecfdf5; color: var(--secondary); }
+        .status-off { background: #fef2f2; color: var(--danger); }
+
+        .today-btn {
+            font-size: 0.75rem;
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+            border: none;
+            background: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .grid-inputs { grid-template-columns: 1fr; }
+            .btn-calc { grid-column: span 1; }
+            .glass-card { padding: 25px; }
+            header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="glass-card">
+        <header>
+            <h1><i data-lucide="microscope"></i> 수업 시수 계산기</h1>
+            <p>강현식 선생님 (통합과학A / 물리학II)</p>
+        </header>
+
+        <div class="grid-inputs">
+            <div class="input-box">
+                <label>📅 시작 날짜 <button class="today-btn" onclick="setToday()">오늘로 설정</button></label>
+                <input type="date" id="startDate">
+            </div>
+
+            <div class="input-box">
+                <label>🎯 목표 시험</label>
+                <select id="examSelect" onchange="document.getElementById('targetDate').value = this.value">
+                    <option value="2026-04-21">1학기 중간고사 (4/21)</option>
+                    <option value="2026-06-26">1학기 기말고사 (6/26)</option>
+                    <option value="2026-09-28">2학기 중간고사 (9/28)</option>
+                    <option value="2026-12-07">2학기 기말고사 (12/7)</option>
+                </select>
+                <input type="date" id="targetDate" value="2026-04-21" style="margin-top:8px;">
+            </div>
+
+            <div class="input-box">
+                <label>📘 담당 과목</label>
+                <select id="subjectSelect" onchange="updateClassOptions()">
+                    <option value="scienceA">통합과학A</option>
+                    <option value="physics2">물리학II</option>
+                </select>
+            </div>
+
+            <div class="input-box">
+                <label id="classLabel">👥 대상 학급</label>
+                <select id="classSelect"></select>
+            </div>
+
+            <button class="btn-calc" onclick="calculate()">
+                <i data-lucide="calculator"></i> 남은 시수 분석하기
+            </button>
+        </div>
+    </div>
+
+    <div id="resultArea" class="result-section">
+        <div class="result-summary">
+            <h2 id="resultTitle" style="font-size: 1.1rem; font-weight: 800; color: var(--text-main);">수업 계획 리스트</h2>
+            <div class="total-badge" id="totalCount">총 0회</div>
+        </div>
+        <table class="lesson-table">
+            <thead>
+                <tr>
+                    <th>날짜 및 요일</th>
+                    <th>상세 정보</th>
+                </tr>
+            </thead>
+            <tbody id="lessonTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    const subjectConfig = {
+        scienceA: {
+            label: "대상 학급",
+            classes: ['1-4', '1-5', '1-6', '1-7', '1-8', '1-9'],
+            schedule: {
+                1: ['1-9', '1-5'],
+                2: ['1-7'],
+                3: ['1-8'],
+                4: ['1-4'],
+                5: ['1-6']
+            }
+        },
+        physics2: {
+            label: "이동수업 반",
+            classes: ['B반', 'D반', 'E반'],
+            schedule: {
+                1: ['D반'],
+                2: ['B반', 'D반', 'E반'],
+                3: ['E반', 'B반'],
+                4: ['D반'],
+                5: ['E반', 'B반']
+            }
+        }
+    };
+
+    const holidays = {
+        "2026-03-02": "입학식 및 개학",
+        "2026-03-24": "전국연합학력평가",
+        "2026-05-01": "근로자의 날",
+        "2026-05-05": "어린이날",
+        "2026-05-25": "부처님오신날 대체공휴일",
+        "2026-05-26": "창의적 체험활동",
+        "2026-05-27": "수련회/현장체험학습",
+        "2026-05-28": "재량휴업일",
+        "2026-06-03": "지방선거",
+        "2026-06-04": "수능모의평가",
+        "2026-06-06": "현충일"
+    };
+
+    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+
+    function setToday() {
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const localISODate = new Date(now - offset).toISOString().split('T')[0];
+        document.getElementById('startDate').value = localISODate;
+    }
+
+    function updateClassOptions() {
+        const subject = document.getElementById('subjectSelect').value;
+        const classSelect = document.getElementById('classSelect');
+        const classLabel = document.getElementById('classLabel');
+        const config = subjectConfig[subject];
+
+        classLabel.innerText = `👥 ${config.label}`;
+        classSelect.innerHTML = '';
+        config.classes.forEach(cls => {
+            const opt = document.createElement('option');
+            opt.value = cls;
+            opt.innerText = cls;
+            classSelect.appendChild(opt);
+        });
+    }
+
+    function calculate() {
+        const startVal = document.getElementById('startDate').value;
+        const targetVal = document.getElementById('targetDate').value;
+        const subject = document.getElementById('subjectSelect').value;
+        const selectedClass = document.getElementById('classSelect').value;
+
+        if (!startVal || !targetVal) return alert("날짜를 설정해주세요.");
+
+        let current = new Date(startVal);
+        const end = new Date(targetVal);
+        const tableBody = document.getElementById('lessonTableBody');
+
+        if (end <= current) return alert("목표 날짜가 시작 날짜보다 빠릅니다.");
+
+        tableBody.innerHTML = '';
+        let total = 0;
+        const schedule = subjectConfig[subject].schedule;
+
+        while (current <= end) {
+            const dayNum = current.getDay();
+            const iso = current.toISOString().split('T')[0];
+
+            if (dayNum >= 1 && dayNum <= 5) {
+                const todaysClasses = schedule[dayNum] || [];
+                const sessionCount = todaysClasses.filter(cls => cls === selectedClass).length;
+
+                if (sessionCount > 0) {
+                    const holidayReason = holidays[iso];
+
+                    if (holidayReason) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${iso} <span style="color:var(--text-sub)">(${dayNames[dayNum]})</span></td>
+                            <td><span class="badge-status status-off">❌ 제외: ${holidayReason}</span></td>
+                        `;
+                        tableBody.appendChild(row);
+                    } else {
+                        for(let i=0; i < sessionCount; i++) {
+                            total++;
+                            const subRow = document.createElement('tr');
+                            subRow.innerHTML = `
+                                <td>${iso} <span style="color:var(--text-sub)">(${dayNames[dayNum]})</span></td>
+                                <td><span class="badge-status status-ok">✅ ${total}차시 수업 예정</span></td>
+                            `;
+                            tableBody.appendChild(subRow);
+                        }
+                    }
+                }
+            }
+            current.setDate(current.getDate() + 1);
+        }
+
+        const subjectName = subject === 'scienceA' ? '통합과학A' : '물리학II';
+        document.getElementById('resultTitle').innerText = `${subjectName} [${selectedClass}] 분석 결과`;
+        document.getElementById('totalCount').innerText = `총 ${total}회`;
+        document.getElementById('resultArea').style.display = 'block';
+
+        window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    window.onload = () => {
+        setToday();
+        updateClassOptions();
+    };
+</script>
+
+</body>
+</html>

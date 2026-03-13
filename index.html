@@ -51,6 +51,12 @@
                 <button onclick="switchTab('list')" id="tab-list" class="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 text-slate-600 hover:bg-slate-100 transition-all">
                     조회하기
                 </button>
+                <button onclick="openSisuModal()" class="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm">
+                    📊 수업시수 확인
+                </button>
+                <button onclick="openAbsenceModal()" class="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 bg-rose-500 hover:bg-rose-600 text-white transition-all shadow-sm">
+                    🗒️ 결석 체크
+                </button>
             </div>
         </div>
     </nav>
@@ -207,10 +213,490 @@
         </div>
     </div>
 
+    <!-- 결석 체크 모달 -->
+    <div id="absence-modal" class="modal" onclick="closeAbsenceOnBackdrop(event)">
+        <div class="bg-white rounded-2xl shadow-xl w-[760px] max-w-[95%] max-h-[90vh] flex flex-col fade-in" onclick="event.stopPropagation()">
+
+            <!-- 모달 헤더 -->
+            <div class="flex justify-between items-center px-6 py-4 border-b border-slate-200 shrink-0">
+                <h3 class="text-lg font-bold text-slate-700">🗒️ 결석 체크</h3>
+                <button onclick="closeAbsenceModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">✕</button>
+            </div>
+
+            <!-- 기본 정보 입력 -->
+            <div class="px-6 pt-5 pb-4 border-b border-slate-100 shrink-0">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">📅 날짜</label>
+                        <input type="date" id="abs-date" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-rose-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">📘 과목</label>
+                        <select id="abs-subject" onchange="absSubjectChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-rose-400">
+                            <option value="">과목 선택</option>
+                            <option value="물리학2">물리학2</option>
+                            <option value="통합과학">통합과학</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">👥 반</label>
+                        <select id="abs-class" onchange="absClassChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-rose-400">
+                            <option value="">반 선택</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">⏰ 교시</label>
+                        <select id="abs-period" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-rose-400">
+                            <option value="">교시 선택</option>
+                            <option value="1">1교시</option>
+                            <option value="2">2교시</option>
+                            <option value="3">3교시</option>
+                            <option value="4">4교시</option>
+                            <option value="5">5교시</option>
+                            <option value="6">6교시</option>
+                            <option value="7">7교시</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 학생 목록 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
+                <div id="abs-empty-msg" class="py-16 text-center text-slate-400 text-sm">
+                    과목과 반을 선택하면 학생 목록이 표시됩니다.
+                </div>
+                <div id="abs-student-table" class="hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">학생 목록</span>
+                        <span id="abs-absence-count" class="text-xs font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-full"></span>
+                    </div>
+                    <!-- 헤더 -->
+                    <div class="grid grid-cols-[80px_1fr_repeat(5,56px)] gap-x-1 px-3 py-2 bg-slate-50 rounded-lg mb-1 text-center">
+                        <span class="text-xs font-semibold text-slate-500 text-left">학번</span>
+                        <span class="text-xs font-semibold text-slate-500 text-left">이름</span>
+                        <span class="text-xs font-semibold text-slate-500">정상</span>
+                        <span class="text-xs font-semibold text-rose-400">결석</span>
+                        <span class="text-xs font-semibold text-amber-400">지각</span>
+                        <span class="text-xs font-semibold text-purple-400">조퇴</span>
+                        <span class="text-xs font-semibold text-blue-400">공결</span>
+                    </div>
+                    <div id="abs-rows" class="space-y-1"></div>
+                </div>
+            </div>
+
+            <!-- 하단 버튼 -->
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-between items-center shrink-0">
+                <span id="abs-save-info" class="text-xs text-slate-400"></span>
+                <div class="flex gap-2">
+                    <button onclick="absReset()" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-all">
+                        초기화
+                    </button>
+                    <button onclick="openAbsenceReview()" class="px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600 text-sm font-semibold hover:bg-indigo-100 transition-all">
+                        📋 조회하기
+                    </button>
+                    <button onclick="absenceSave()" class="px-6 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-all shadow-sm">
+                        💾 저장하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 결석 현황 조회 모달 -->
+    <div id="absence-review-modal" class="modal" onclick="closeAbsenceReviewOnBackdrop(event)">
+        <div class="bg-white rounded-2xl shadow-xl w-[820px] max-w-[95%] max-h-[90vh] flex flex-col fade-in" onclick="event.stopPropagation()">
+
+            <!-- 헤더 -->
+            <div class="flex justify-between items-center px-6 py-4 border-b border-slate-200 shrink-0">
+                <h3 class="text-lg font-bold text-slate-700">📋 결석 현황 조회</h3>
+                <button onclick="closeAbsenceReview()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">✕</button>
+            </div>
+
+            <!-- 필터 -->
+            <div class="px-6 pt-4 pb-3 border-b border-slate-100 shrink-0">
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">📘 과목 필터</label>
+                        <select id="rev-subject" onchange="absReviewRender()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+                            <option value="">전체 과목</option>
+                            <option value="물리학2">물리학2</option>
+                            <option value="통합과학">통합과학</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">👥 반 필터</label>
+                        <select id="rev-class" onchange="absReviewRender()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+                            <option value="">전체 반</option>
+                        </select>
+                    </div>
+                    <button onclick="absReviewLoad()" class="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-bold transition-all">
+                        🔄 새로고침
+                    </button>
+                    <span id="rev-total-badge" class="text-xs text-slate-400 font-semibold ml-auto self-center"></span>
+                </div>
+            </div>
+
+            <!-- 내용 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
+                <div id="rev-loading" class="hidden py-16 text-center text-slate-400 text-sm">불러오는 중...</div>
+                <div id="rev-empty" class="hidden py-16 text-center text-slate-400 text-sm">조회된 이상 출결 기록이 없습니다.</div>
+                <div id="rev-content" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 수업시수 확인 모달 -->
+    <div id="sisu-modal" class="modal" onclick="closeSisuOnBackdrop(event)">
+        <div class="bg-white rounded-2xl shadow-xl w-[860px] max-w-[95%] max-h-[90vh] flex flex-col fade-in" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center px-6 py-4 border-b border-slate-200">
+                <h3 class="text-lg font-bold text-slate-700">📊 수업 시수 확인</h3>
+                <button onclick="closeSisuModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">✕</button>
+            </div>
+            <iframe src="./sisu.html" class="flex-1 rounded-b-2xl" style="border:none; min-height:640px;"></iframe>
+        </div>
+    </div>
+
     <!-- 토스트 메시지 -->
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full text-sm font-medium opacity-0 transition-opacity pointer-events-none z-50">
         저장되었습니다.
     </div>
+
+    <script>
+        /* ── 결석 체크 모달 ── */
+        function openAbsenceModal() {
+            // 오늘 날짜 자동 설정
+            const today = new Date();
+            const offset = today.getTimezoneOffset() * 60000;
+            document.getElementById('abs-date').value = new Date(today - offset).toISOString().split('T')[0];
+            document.getElementById('absence-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAbsenceModal() {
+            document.getElementById('absence-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function closeAbsenceOnBackdrop(e) {
+            if (e.target === document.getElementById('absence-modal')) closeAbsenceModal();
+        }
+
+        function absSubjectChange() {
+            const subject = document.getElementById('abs-subject').value;
+            const classSelect = document.getElementById('abs-class');
+            classSelect.innerHTML = '<option value="">반 선택</option>';
+            absHideTable();
+
+            if (!subject) return;
+
+            // students.js 의 전역 배열 students 활용
+            const classes = [...new Set(
+                (window.students || [])
+                    .filter(s => s.subject === subject)
+                    .map(s => s.class)
+            )].sort();
+
+            classes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                classSelect.appendChild(opt);
+            });
+        }
+
+        function absClassChange() {
+            const subject = document.getElementById('abs-subject').value;
+            const cls = document.getElementById('abs-class').value;
+            if (!subject || !cls) { absHideTable(); return; }
+            absRenderTable(subject, cls);
+        }
+
+        function absHideTable() {
+            document.getElementById('abs-empty-msg').classList.remove('hidden');
+            document.getElementById('abs-student-table').classList.add('hidden');
+            document.getElementById('abs-save-info').textContent = '';
+        }
+
+        function absRenderTable(subject, cls) {
+            const classStudents = (window.students || [])
+                .filter(s => s.subject === subject && s.class === cls)
+                .sort((a, b) => a.id.localeCompare(b.id));
+
+            const rowsEl = document.getElementById('abs-rows');
+            rowsEl.innerHTML = '';
+
+            const statusTypes = [
+                { value: 'normal',  label: '정상', color: 'text-slate-600' },
+                { value: 'absent',  label: '결석', color: 'text-rose-500' },
+                { value: 'late',    label: '지각', color: 'text-amber-500' },
+                { value: 'early',   label: '조퇴', color: 'text-purple-500' },
+                { value: 'official',label: '공결', color: 'text-blue-500' },
+            ];
+
+            classStudents.forEach(student => {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-[80px_1fr_repeat(5,56px)] gap-x-1 px-3 py-2 rounded-lg hover:bg-slate-50 items-center text-center transition-colors';
+                row.dataset.id = student.id;
+
+                const radios = statusTypes.map(st => `
+                    <label class="flex justify-center items-center cursor-pointer">
+                        <input type="radio" name="abs_${student.id}" value="${st.value}"
+                            ${st.value === 'normal' ? 'checked' : ''}
+                            onchange="absUpdateCount()"
+                            class="w-4 h-4 accent-rose-500 cursor-pointer">
+                    </label>
+                `).join('');
+
+                row.innerHTML = `
+                    <span class="text-xs text-slate-500 text-left font-mono">${student.id}</span>
+                    <span class="text-sm font-semibold text-slate-700 text-left">${student.name}</span>
+                    ${radios}
+                `;
+                rowsEl.appendChild(row);
+            });
+
+            document.getElementById('abs-empty-msg').classList.add('hidden');
+            document.getElementById('abs-student-table').classList.remove('hidden');
+            absUpdateCount();
+        }
+
+        function absUpdateCount() {
+            const nonNormal = document.querySelectorAll('#abs-rows input[type=radio]:not([value=normal]):checked');
+            const total = document.querySelectorAll('#abs-rows input[type=radio][value=normal]').length;
+            const count = nonNormal.length;
+            const el = document.getElementById('abs-absence-count');
+            if (count === 0) {
+                el.textContent = `전원 정상 (${total}명)`;
+                el.className = 'text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-full';
+            } else {
+                el.textContent = `이상 ${count}명 / 전체 ${total}명`;
+                el.className = 'text-xs font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-full';
+            }
+        }
+
+        function absReset() {
+            document.querySelectorAll('#abs-rows input[type=radio][value=normal]').forEach(r => {
+                r.checked = true;
+            });
+            absUpdateCount();
+        }
+
+        async function absenceSave() {
+            const date    = document.getElementById('abs-date').value;
+            const subject = document.getElementById('abs-subject').value;
+            const cls     = document.getElementById('abs-class').value;
+            const period  = document.getElementById('abs-period').value;
+
+            if (!date || !subject || !cls || !period) {
+                alert('날짜, 과목, 반, 교시를 모두 선택해주세요.');
+                return;
+            }
+            if (document.getElementById('abs-student-table').classList.contains('hidden')) {
+                alert('학생 목록을 먼저 불러오세요.');
+                return;
+            }
+
+            const labelMap = { normal: '정상', absent: '결석', late: '지각', early: '조퇴', official: '공결' };
+            const records = {};
+            document.querySelectorAll('#abs-rows > div').forEach(row => {
+                const id = row.dataset.id;
+                const checked = row.querySelector(`input[name="abs_${id}"]:checked`);
+                records[id] = checked ? checked.value : 'normal';
+            });
+
+            const key = `${date}_${subject}_${cls}_${period}교시`.replace(/\s/g, '_');
+            const saveData = { date, subject, class: cls, period, records, savedAt: new Date().toISOString() };
+
+            try {
+                if (window.db && window.ref && window.set) {
+                    await window.set(window.ref(window.db, `absences/${key}`), saveData);
+                }
+                const infoEl = document.getElementById('abs-save-info');
+                infoEl.textContent = `✅ ${date} ${subject} ${cls} ${period}교시 저장 완료`;
+                infoEl.className = 'text-xs text-emerald-600 font-semibold';
+            } catch (e) {
+                console.error(e);
+                alert('저장 중 오류가 발생했습니다.');
+            }
+        }
+
+        /* ── 결석 현황 조회 모달 ── */
+        let absReviewData = {}; // Firebase에서 받아온 원본 데이터
+
+        const absLabelMap  = { absent: '결석', late: '지각', early: '조퇴', official: '공결' };
+        const absBadgeClass = {
+            absent:   'bg-rose-100 text-rose-600',
+            late:     'bg-amber-100 text-amber-600',
+            early:    'bg-purple-100 text-purple-600',
+            official: 'bg-blue-100 text-blue-600',
+        };
+
+        async function openAbsenceReview() {
+            document.getElementById('absence-review-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            await absReviewLoad();
+        }
+
+        function closeAbsenceReview() {
+            document.getElementById('absence-review-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function closeAbsenceReviewOnBackdrop(e) {
+            if (e.target === document.getElementById('absence-review-modal')) closeAbsenceReview();
+        }
+
+        async function absReviewLoad() {
+            const loadEl   = document.getElementById('rev-loading');
+            const emptyEl  = document.getElementById('rev-empty');
+            const contentEl = document.getElementById('rev-content');
+
+            loadEl.classList.remove('hidden');
+            emptyEl.classList.add('hidden');
+            contentEl.innerHTML = '';
+            document.getElementById('rev-total-badge').textContent = '';
+
+            try {
+                const snap = await window.get(window.ref(window.db, 'absences'));
+                absReviewData = snap.exists() ? snap.val() : {};
+            } catch (e) {
+                console.error(e);
+                absReviewData = {};
+            }
+
+            loadEl.classList.add('hidden');
+
+            // 반 필터 옵션 채우기
+            const revClassSel = document.getElementById('rev-class');
+            const curClass = revClassSel.value;
+            revClassSel.innerHTML = '<option value="">전체 반</option>';
+            const allClasses = [...new Set(Object.values(absReviewData).map(r => r.class))].sort();
+            allClasses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                revClassSel.appendChild(opt);
+            });
+            if (allClasses.includes(curClass)) revClassSel.value = curClass;
+
+            absReviewRender();
+        }
+
+        function absReviewRender() {
+            const filterSubject = document.getElementById('rev-subject').value;
+            const filterClass   = document.getElementById('rev-class').value;
+            const contentEl     = document.getElementById('rev-content');
+            const emptyEl       = document.getElementById('rev-empty');
+            contentEl.innerHTML = '';
+
+            // 필터 + 비정상 학생만 추출 (fbKey 포함)
+            const entries = Object.entries(absReviewData)
+                .filter(([, r]) => (!filterSubject || r.subject === filterSubject)
+                                && (!filterClass   || r.class   === filterClass))
+                .map(([fbKey, r]) => {
+                    const nonNormal = Object.entries(r.records || {})
+                        .filter(([, status]) => status !== 'normal')
+                        .map(([id, status]) => {
+                            const stu = (window.students || []).find(s => s.id === id);
+                            return { id, name: stu ? stu.name : id, status };
+                        });
+                    return { ...r, fbKey, nonNormal };
+                })
+                .filter(r => r.nonNormal.length > 0)
+                .sort((a, b) => b.date.localeCompare(a.date)); // 최신순
+
+            if (entries.length === 0) {
+                emptyEl.classList.remove('hidden');
+                document.getElementById('rev-total-badge').textContent = '';
+                return;
+            }
+            emptyEl.classList.add('hidden');
+
+            // 날짜별 그룹핑
+            const byDate = {};
+            entries.forEach(r => {
+                if (!byDate[r.date]) byDate[r.date] = [];
+                byDate[r.date].push(r);
+            });
+
+            let totalStudents = 0;
+            Object.keys(byDate).sort((a, b) => b.localeCompare(a)).forEach(date => {
+                const group = byDate[date];
+                const dayNames = ['일','월','화','수','목','금','토'];
+                const d = new Date(date);
+                const dayLabel = dayNames[d.getDay()];
+
+                const section = document.createElement('div');
+                section.className = 'bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm';
+
+                // 날짜 헤더
+                const header = document.createElement('div');
+                header.className = 'flex items-center gap-3 px-4 py-3 bg-slate-50 border-b border-slate-200';
+                const dayCount = group.reduce((sum, r) => sum + r.nonNormal.length, 0);
+                totalStudents += dayCount;
+                header.innerHTML = `
+                    <span class="font-bold text-slate-700">${date} (${dayLabel})</span>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-600">${dayCount}건</span>
+                `;
+                section.appendChild(header);
+
+                // 수업별 행
+                group.sort((a, b) => Number(a.period) - Number(b.period)).forEach(r => {
+                    const block = document.createElement('div');
+                    block.className = 'px-4 py-3 border-b border-slate-100 last:border-0';
+
+                    const stuBadges = r.nonNormal.map(s => `
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${absBadgeClass[s.status] || 'bg-slate-100 text-slate-600'}">
+                            ${s.name}
+                            <span class="opacity-70">${absLabelMap[s.status] || s.status}</span>
+                        </span>
+                    `).join('');
+
+                    const safeKey = r.fbKey.replace(/'/g, "\\'");
+                    const label = `${r.date} ${r.subject} ${r.class} ${r.period}교시`;
+                    block.innerHTML = `
+                        <div class="flex items-start gap-3 flex-wrap">
+                            <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg whitespace-nowrap shrink-0">${r.subject} ${r.class} ${r.period}교시</span>
+                            <div class="flex flex-wrap gap-1.5 flex-1">${stuBadges}</div>
+                            <button onclick="absDeleteRecord('${safeKey}', '${label}')"
+                                class="shrink-0 text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 px-2 py-1 rounded-lg transition-colors border border-transparent hover:border-rose-200">
+                                🗑 삭제
+                            </button>
+                        </div>
+                    `;
+                    section.appendChild(block);
+                });
+
+                contentEl.appendChild(section);
+            });
+
+            document.getElementById('rev-total-badge').textContent = `총 ${totalStudents}건`;
+        }
+
+        async function absDeleteRecord(fbKey, label) {
+            if (!confirm(`다음 기록을 삭제하시겠습니까?\n\n${label}`)) return;
+            try {
+                await window.remove(window.ref(window.db, `absences/${fbKey}`));
+                delete absReviewData[fbKey];
+                absReviewRender();
+            } catch (e) {
+                console.error(e);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        /* ── 수업시수 모달 ── */
+        function openSisuModal() {
+            document.getElementById('sisu-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSisuModal() {
+            document.getElementById('sisu-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        function closeSisuOnBackdrop(e) {
+            if (e.target === document.getElementById('sisu-modal')) closeSisuModal();
+        }
+    </script>
 
     <!-- 학생 데이터 로드 -->
     <script src="./students.js"></script>
