@@ -59,6 +59,7 @@ let cachedClassNotes = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('date').valueAsDate = new Date();
+    handleDateChange();
     addStudentRow();
     await renderMemoList();
 });
@@ -87,6 +88,12 @@ async function switchTab(tab) {
 function handleSubjectChange() {
     const subject = document.getElementById('subject').value;
     const classSelect = document.getElementById('class-group');
+    if (!subject) {
+        classSelect.innerHTML = '<option value="">과목을 먼저 선택하세요</option>';
+        document.getElementById('period').value = '';
+        handleClassChange();
+        return;
+    }
     classSelect.innerHTML = '<option value="">반 선택</option>';
     if (window.currentDay && schedule[window.currentDay] && schedule[window.currentDay][subject]) {
         const classes = Object.keys(schedule[window.currentDay][subject]);
@@ -110,6 +117,8 @@ function handleClassChange() {
     if (window.currentDay && schedule[window.currentDay] && schedule[window.currentDay][subject] && schedule[window.currentDay][subject][classGroup]) {
         const period = schedule[window.currentDay][subject][classGroup];
         document.getElementById('period').value = period;
+    } else {
+        document.getElementById('period').value = '';
     }
     
     // 과목과 반이 모두 선택되었는지 확인
