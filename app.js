@@ -551,6 +551,7 @@ function showToast(msg) {
 }
 
 // 전역 함수로 노출
+window.schedule = schedule;
 window.switchTab = switchTab;
 window.handleSubjectChange = handleSubjectChange;
 window.handleClassChange = handleClassChange;
