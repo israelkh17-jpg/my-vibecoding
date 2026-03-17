@@ -41,3 +41,29 @@ body {
     background: #cbd5e1;
     border-radius: 10px;
 }
+
+/* 모바일 하단 탭바 */
+.btm-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px 12px;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btm-tab.active {
+    color: #2563eb;
+}
+
+.btm-tab:active {
+    opacity: 0.7;
+}

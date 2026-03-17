@@ -69,18 +69,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function switchTab(tab) {
     const sections = ['input-section', 'list-section'];
     sections.forEach(s => document.getElementById(s).classList.add('hidden'));
-    
+
+    // 상단 탭 버튼 (데스크탑)
     const tabInput = document.getElementById('tab-input');
-    const tabList = document.getElementById('tab-list');
-    
+    const tabList  = document.getElementById('tab-list');
+    // 하단 탭 버튼 (모바일)
+    const btmInput = document.getElementById('bottom-tab-input');
+    const btmList  = document.getElementById('bottom-tab-list');
+
+    const activeTop   = "px-3 py-1.5 sm:py-2 rounded-lg font-semibold text-sm whitespace-nowrap shrink-0 bg-blue-600 text-white transition-all";
+    const inactiveTop = "px-3 py-1.5 sm:py-2 rounded-lg font-semibold text-sm whitespace-nowrap shrink-0 text-slate-600 hover:bg-slate-100 transition-all";
+    const activeBtn   = "btm-tab active";
+    const inactiveBtn = "btm-tab";
+
     if (tab === 'input') {
         document.getElementById('input-section').classList.remove('hidden');
-        tabInput.className = "px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition-all shadow-md";
-        tabList.className = "px-4 py-2 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition-all";
+        if (tabInput) tabInput.className = activeTop;
+        if (tabList)  tabList.className  = inactiveTop;
+        if (btmInput) btmInput.className = activeBtn;
+        if (btmList)  btmList.className  = inactiveBtn;
     } else if (tab === 'list') {
         document.getElementById('list-section').classList.remove('hidden');
-        tabInput.className = "px-4 py-2 rounded-lg font-semibold text-slate-600 hover:bg-slate-100 transition-all";
-        tabList.className = "px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition-all shadow-md";
+        if (tabInput) tabInput.className = inactiveTop;
+        if (tabList)  tabList.className  = activeTop;
+        if (btmInput) btmInput.className = inactiveBtn;
+        if (btmList)  btmList.className  = activeBtn;
         await renderMemoList();
     }
 }
