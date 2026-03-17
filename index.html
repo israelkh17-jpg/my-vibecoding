@@ -40,21 +40,21 @@
 
     <!-- 네비게이션 바 -->
     <nav class="bg-white shadow-sm sticky top-0 z-10 border-b border-slate-200">
-        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <h1 class="text-lg sm:text-xl font-bold text-blue-600 flex items-center gap-2 leading-tight">
+        <div class="max-w-4xl mx-auto px-4 py-2 flex flex-col sm:flex-row sm:h-16 sm:items-center gap-2">
+            <h1 class="text-base sm:text-xl font-bold text-blue-600 leading-tight">
                 강현식의 수업 메모장
             </h1>
-            <div class="flex gap-2 items-center">
-                <button onclick="switchTab('input')" id="tab-input" class="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 bg-blue-600 text-white transition-all">
+            <div class="flex gap-1.5 items-center sm:ml-auto flex-wrap">
+                <button onclick="switchTab('input')" id="tab-input" class="px-3 py-1.5 sm:py-2 rounded-lg font-semibold text-sm whitespace-nowrap shrink-0 bg-blue-600 text-white transition-all">
                     기록하기
                 </button>
-                <button onclick="switchTab('list')" id="tab-list" class="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 text-slate-600 hover:bg-slate-100 transition-all">
+                <button onclick="switchTab('list')" id="tab-list" class="px-3 py-1.5 sm:py-2 rounded-lg font-semibold text-sm whitespace-nowrap shrink-0 text-slate-600 hover:bg-slate-100 transition-all">
                     조회하기
                 </button>
-                <button onclick="openSisuModal()" class="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm">
-                    📊 수업시수 확인
+                <button onclick="openSisuModal()" class="px-3 py-1.5 sm:py-2 rounded-lg font-semibold text-sm whitespace-nowrap shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm">
+                    📊 <span class="hidden sm:inline">수업시수 확인</span><span class="sm:hidden">수업시수</span>
                 </button>
-                <button onclick="openAbsenceModal()" class="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap shrink-0 bg-rose-500 hover:bg-rose-600 text-white transition-all shadow-sm">
+                <button onclick="openAbsenceModal()" class="px-3 py-1.5 sm:py-2 rounded-lg font-semibold text-sm whitespace-nowrap shrink-0 bg-rose-500 hover:bg-rose-600 text-white transition-all shadow-sm">
                     🗒️ 결석 체크
                 </button>
             </div>
