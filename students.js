@@ -795,7 +795,7 @@ const students = [
     "subject": "통합과학",
     "class": "6반",
     "id": "10630",
-    "name": "이현준"
+    "name": "윤형태"
   },
   {
     "subject": "통합과학",
@@ -970,6 +970,12 @@ const students = [
     "class": "7반",
     "id": "10729",
     "name": "방현민"
+  },
+  {
+    "subject": "통합과학",
+    "class": "7반",
+    "id": "10730",
+    "name": "최재민"
   },
   {
     "subject": "통합과학",
@@ -1504,6 +1510,12 @@ const students = [
     "class": "4반",
     "id": "10430",
     "name": "김현규"
+  },
+  {
+    "subject": "통합과학",
+    "class": "4반",
+    "id": "10431",
+    "name": "구한"
   }
 ];
 
