@@ -325,6 +325,8 @@ async function renderMemoList() {
             savedData = Object.values(data);
         }
 
+        savedData.sort((a, b) => String(b.date).localeCompare(String(a.date)) || Number(b.period) - Number(a.period));
+
         const hasStudentRecords = savedData.some(memo => memo.students && memo.students.length > 0);
 
         if (savedData.length === 0) {
